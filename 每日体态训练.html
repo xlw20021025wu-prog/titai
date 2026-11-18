@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#101216">
+<title>每日体态训练</title>
+<style>
+:root{--bg:#101216;--card:#1a1d24;--line:#2a2f3a;--txt:#e8eaf0;--dim:#98a1b3;--accent:#5ec9a8;--accent2:#f2b544;--good:#5ec98a;--bad:#ef6b6b}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--txt);font-family:-apple-system,"PingFang SC","Noto Sans CJK SC",sans-serif;-webkit-text-size-adjust:100%}
+body{padding-bottom:40px}
+header{padding:16px 14px 8px}
+h1{font-size:19px;margin:0}
+.sub{font-size:12px;color:var(--dim);margin-top:3px}
+nav{display:flex;gap:6px;padding:8px 12px;position:sticky;top:0;background:var(--bg);z-index:9;border-bottom:1px solid var(--line)}
+nav button{flex:1;padding:9px 0;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--dim);font-size:14px;font-family:inherit}
+nav button.on{background:var(--accent);border-color:var(--accent);color:#0d1a16;font-weight:600}
+main{padding:12px}
+section{display:none}
+section.on{display:block}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:12px}
+.card h2{font-size:15px;margin:0 0 8px;color:var(--accent)}
+.card p{font-size:13.5px;line-height:1.75;margin:6px 0}
+.dim{color:var(--dim)}
+.bar{height:8px;border-radius:5px;background:#242a34;overflow:hidden;margin:8px 0 4px}
+.bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .25s}
+.pbar{display:flex;justify-content:space-between;font-size:12px;color:var(--dim)}
+.timerbox{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.tval{font-size:26px;font-variant-numeric:tabular-nums;min-width:86px;text-align:center;color:var(--accent)}
+.tbtn{flex:1;min-width:64px;padding:9px 0;border-radius:10px;border:1px solid var(--line);background:#22262f;color:var(--dim);font-size:13px;font-family:inherit}
+.ex{border-bottom:1px solid var(--line);padding:12px 0}
+.ex:last-child{border-bottom:0}
+.exhead{display:flex;gap:10px;align-items:flex-start;cursor:pointer}
+.exhead input{width:20px;height:20px;margin-top:2px;accent-color:var(--accent);flex:none}
+.exnum{display:inline-flex;width:22px;height:22px;border-radius:7px;background:#242a34;color:var(--dim);font-size:12px;align-items:center;justify-content:center;flex:none;margin-top:1px}
+.exname{font-size:15px;font-weight:600}
+.exsets{font-size:12px;color:var(--accent2);margin:4px 0 0 52px}
+.ex ul{margin:6px 0 0 52px;padding-left:16px}
+.ex li{font-size:13px;line-height:1.7;color:var(--txt)}
+.ex.done .exname{color:var(--dim);text-decoration:line-through}
+.vidrow{margin:8px 0 0 52px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.vid{font-size:12.5px;color:#0d1a16;background:var(--accent);padding:6px 10px;border-radius:8px;text-decoration:none;font-weight:600}
+.vsearch{font-size:12px;color:var(--dim);text-decoration:none;border:1px solid var(--line);padding:5px 9px;border-radius:8px}
+textarea{width:100%;min-height:64px;background:#22262f;color:var(--txt);border:1px solid var(--line);border-radius:10px;padding:10px;font-size:14px;font-family:inherit;resize:vertical}
+.hist{border-bottom:1px solid var(--line);padding:10px 0;font-size:13px}
+.hist:last-child{border-bottom:0}
+.histh{display:flex;justify-content:space-between;color:var(--txt)}
+.histh b{font-weight:600}
+.histnote{color:var(--dim);font-size:12.5px;margin-top:4px;line-height:1.6}
+.stats{display:flex;gap:10px}
+.stat{flex:1;background:#22262f;border-radius:10px;padding:10px 0;text-align:center}
+.stat b{display:block;font-size:18px;color:var(--accent)}
+.stat span{font-size:11.5px;color:var(--dim)}
+.player{position:relative;width:100%;padding-top:56.25%;background:#000;border-radius:10px;overflow:hidden;margin-top:10px}
+.player iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:0}
+button.vid{font-family:inherit;border:0;cursor:pointer}
+</style>
+</head>
+<body>
+<header>
+  <h1>每日体态训练</h1>
+  <div class="sub">上交叉 + 下交叉 · 圆肩驼背 · 头前伸 · 每天约 18 分钟</div>
+</header>
+<nav>
+  <button class="on" data-t="today">今日训练</button>
+  <button data-t="hist">打卡记录</button>
+</nav>
+<main>
+<section id="today" class="on">
+  <div class="card">
+    <h2>今日进度</h2>
+    <div class="bar"><i id="pbar"></i></div>
+    <div class="pbar"><span id="pcount">0 / 12</span><span id="streak">连续 0 天</span></div>
+    <p class="dim" id="dateline"></p>
+  </div>
+  <div class="card">
+    <h2>计时器</h2>
+    <div class="timerbox">
+      <div class="tval" id="tval">00:30</div>
+      <button class="tbtn" data-sec="30">30 秒</button>
+      <button class="tbtn" data-sec="45">45 秒</button>
+      <button class="tbtn" data-sec="60">60 秒</button>
+      <button class="tbtn" id="tstop">停</button>
+    </div>
+    <p class="dim">拉伸和静态动作按这里计时，到点会响一声。</p>
+  </div>
+  <div class="card" id="list">
+    <h2>动作清单</h2>
+  </div>
+  <div class="card">
+    <h2>今日备注</h2>
+    <textarea id="note" placeholder="比如：今天脖子有点紧、臀桥找不到发力感……"></textarea>
+    <p class="dim">自动保存，下次打开还在。</p>
+  </div>
+</section>
+<section id="hist">
+  <div class="card">
+    <h2>统计</h2>
+    <div class="stats">
+      <div class="stat"><b id="s1">0</b><span>连续打卡（天）</span></div>
+      <div class="stat"><b id="s2">0</b><span>累计打卡（天）</span></div>
+      <div class="stat"><b id="s3">0%</b><span>近 7 天完成率</span></div>
+    </div>
+  </div>
+  <div class="card" id="history">
+    <h2>最近记录</h2>
+    <p class="dim" id="hempty">还没有记录，练完今天的动作勾一下就行。</p>
+  </div>
+  <div class="card">
+    <h2>注意事项</h2>
+    <p>疼就停，不追求幅度；每天固定时间，比如刷牙后；先连做两周再看变化。如果出现头晕、手麻、疼痛加重，先去看医生再练。</p>
+  </div>
+</section>
+</main>
+<script>
+(function(){
+'use strict';
+var $=function(s){return document.querySelector(s)};
+var $$=function(s){return Array.prototype.slice.call(document.querySelectorAll(s))};
+var EX=[
+ {id:'e1',name:'猫牛式（热身）',sets:'1 组 × 10 次，跟着呼吸慢做',points:['四点跪，手腕在肩下、膝盖在髋下','吸气塌腰抬头，呼气拱背低头','脊柱一节一节动，别耸肩，别急'],vid:{bvid:'BV1jPxX6rE6X',secs:29},q:'猫牛式 教学'},
+ {id:'e2',name:'靠墙站（热身）',sets:'1 组 × 60 秒',points:['后脑勺、肩胛骨、臀部三点贴墙','下巴微收，不仰头','肋骨别外翻，自然呼吸'],vid:{bvid:'BV1Gc6RBkE2t',secs:111},q:'靠墙站立 体态 教学'},
+ {id:'e3',name:'靠墙收下巴',sets:'3 组 × 8 次，每次保持 5 秒',points:['后脑贴墙，下巴水平往后收，做出双下巴','是平移，不是低头','肩膀放松下沉，别往前送','停 5 秒慢慢回，别用力猛顶'],vid:{bvid:'BV1gZJ7zKE8r',secs:34},q:'收下巴 颈前伸 矫正'},
+ {id:'e4',name:'墙面天使',sets:'3 组 × 10 次',points:['背靠墙，膝盖微屈','手背贴墙从两侧往上滑，像画天使翅膀','全程手肘和手背不离开墙','上去呼气，下来吸气；做不到就缩小幅度'],vid:{bvid:'BV1yjuC6XEhb',secs:71},q:'靠墙天使 教学'},
+ {id:'e5',name:'俯卧 YTW',sets:'2 组，Y、T、W 各 8 次',points:['趴地，额头垫块毛巾','手臂分别摆成 Y、T、W 三个字母','抬起时先收肩胛骨，手臂离地一点就够','不抬头、不憋气，脖子放松'],vid:{bvid:'BV12E421K7YG',secs:48},q:'俯卧YTW 教学'},
+ {id:'e6',name:'门框胸肌拉伸',sets:'2 组 × 30 秒 / 侧',points:['前臂贴门框，手肘和肩差不多高','身体慢慢前倾，胸前有拉开的感觉','肩膀下沉别耸，别塌腰','有轻微牵拉就行，疼就退回一点'],vid:{bvid:'BV1HU9MBcEdA',secs:27},q:'胸肌拉伸 门框'},
+ {id:'e7',name:'死虫式',sets:'3 组 × 8 次 / 侧',points:['仰卧，腰贴地，手臂垂直朝天','对侧的手和脚同时慢慢伸远','腰一离地就把幅度收小','呼气伸，吸气收回，全程慢'],vid:{bvid:'BV1q28m63ELB',secs:40},q:'死虫式 教学'},
+ {id:'e8',name:'臀桥',sets:'3 组 × 12 次，顶点停 2 秒',points:['仰卧屈膝，脚跟离臀部一拳左右','用屁股发力把髋顶起来，不是用腰','顶点停 2 秒，肋骨别往上翻','放下要慢，别砸下去'],vid:{bvid:'BV1pVGq6GEM8',secs:161},q:'臀桥 正确做法'},
+ {id:'e9',name:'鸟狗式',sets:'3 组 × 8 次 / 侧',points:['四点跪，背保持平','对侧手脚同时伸远伸平','骨盆别歪，腰别塌','停 2 秒再换边'],vid:{bvid:'BV1S3cJecEwH',secs:84},q:'鸟狗式 教学'},
+ {id:'e10',name:'蚌式开合',sets:'3 组 × 12 次 / 侧',points:['侧卧，髋和膝都屈起来，脚并拢','脚跟不分开，只把上面的膝盖打开','骨盆别往后翻，身体稳住','慢开慢合，屁股外侧发力'],vid:{bvid:'BV1akxNzJEQg',secs:154},q:'蚌式开合 教学'},
+ {id:'e11',name:'跪姿髋屈肌拉伸',sets:'2 组 × 30 秒 / 侧',points:['单膝跪地，另一只脚踩在前面','收紧臀部，骨盆微微后倾','身体整体往前移，大腿根有拉伸感','上身别塌腰，别憋气'],vid:{bvid:'BV1UN411c7q8',secs:66},q:'髋屈肌拉伸 教学'},
+ {id:'e12',name:'腹式呼吸（放松）',sets:'1 组 × 60 秒',points:['躺平或坐正，一只手放肚子','吸气肚子鼓起来，呼气慢慢瘪下去','呼气时间比吸气长一点','放松收尾，别耸肩'],vid:{bvid:'BV1qdW269ELQ',secs:94},q:'腹式呼吸 教学'}
+];
+var STORE='posture-log-v1';
+var log={};
+try{log=JSON.parse(localStorage.getItem(STORE)||'{}')}catch(e){log={}}
+function pad(n){return n<10?'0'+n:''+n}
+function dayKey(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())}
+function today(){return dayKey(new Date())}
+function saveLog(){try{localStorage.setItem(STORE,JSON.stringify(log))}catch(e){}}
+function entry(k){
+  if(!log[k]) log[k]={done:[],note:''};
+  if(!log[k].done) log[k].done=[];
+  if(typeof log[k].note!=='string') log[k].note='';
+  return log[k];
+}
+
+var list=$('#list');
+function fmtSec(s){if(s<60) return s+' 秒';var m=Math.floor(s/60),r=s%60;return m+' 分'+(r?' '+r+' 秒':'');}
+function openPlayer(d,bvid){
+  if(d.querySelector('.player')) return;
+  var box=document.createElement('div');
+  box.className='player';
+  var f=document.createElement('iframe');
+  f.src='https://player.bilibili.com/player.html?bvid='+bvid+'&autoplay=0&danmaku=0&high_quality=1';
+  f.setAttribute('allowfullscreen','true');
+  f.setAttribute('scrolling','no');
+  box.appendChild(f);
+  d.appendChild(box);
+}
+EX.forEach(function(ex,i){
+  var d=document.createElement('div');
+  d.className='ex';
+  d.setAttribute('data-id',ex.id);
+  var head=document.createElement('label');
+  head.className='exhead';
+  head.innerHTML='<input type="checkbox"><span class="exnum">'+(i+1)+'</span><span class="exname">'+ex.name+'</span>';
+  var sets=document.createElement('div');
+  sets.className='exsets';
+  sets.textContent=ex.sets;
+  var ul=document.createElement('ul');
+  ex.points.forEach(function(p){var li=document.createElement('li');li.textContent=p;ul.appendChild(li)});
+  d.appendChild(head); d.appendChild(sets); d.appendChild(ul);
+  var vr=document.createElement('div');
+  vr.className='vidrow';
+  if(ex.vid){
+    var pb=document.createElement('button');
+    pb.className='vid';
+    pb.textContent='▶ 在页面里播放（'+fmtSec(ex.vid.secs)+'）';
+    pb.addEventListener('click',function(){openPlayer(d,ex.vid.bvid)});
+    vr.appendChild(pb);
+    var go=document.createElement('a');
+    go.className='vsearch';
+    go.href='https://www.bilibili.com/video/'+ex.vid.bvid+'/';
+    go.target='_blank'; go.rel='noopener';
+    go.textContent='去 B 站看';
+    vr.appendChild(go);
+  }else{
+    var s=document.createElement('a');
+    s.className='vsearch';
+    s.href='https://search.bilibili.com/all?keyword='+encodeURIComponent(ex.q);
+    s.target='_blank'; s.rel='noopener';
+    s.textContent='搜同类视频';
+    vr.appendChild(s);
+  }
+  d.appendChild(vr);
+  var cb=head.querySelector('input');
+  cb.addEventListener('change',function(){
+    var e=entry(today());
+    var idx=e.done.indexOf(ex.id);
+    if(cb.checked&&idx<0) e.done.push(ex.id);
+    if(!cb.checked&&idx>=0) e.done.splice(idx,1);
+    saveLog();
+    d.classList.toggle('done',cb.checked);
+    update();
+  });
+  list.appendChild(d);
+});
+
+function update(){
+  var e=entry(today());
+  var n=e.done.length;
+  $('#pbar').style.width=Math.round(n/EX.length*100)+'%';
+  $('#pcount').textContent=n+' / '+EX.length;
+  var d=new Date();
+  $('#dateline').textContent='今天 '+d.getFullYear()+' 年 '+(d.getMonth()+1)+' 月 '+d.getDate()+' 日';
+  $$('#list .ex').forEach(function(x){
+    var cb=x.querySelector('input');
+    cb.checked=e.done.indexOf(x.getAttribute('data-id'))>=0;
+    x.classList.toggle('done',cb.checked);
+  });
+  $('#note').value=e.note;
+  renderStats();
+  renderHistory();
+}
+function dayDoneCount(k){return (log[k]&&log[k].done)?log[k].done.length:0}
+function renderStats(){
+  var keys=Object.keys(log).filter(function(k){return dayDoneCount(k)>0});
+  $('#s2').textContent=keys.length;
+  var streak=0;
+  var d=new Date();
+  if(dayDoneCount(dayKey(d))===0) d.setDate(d.getDate()-1);
+  for(;;){
+    var k=dayKey(d);
+    if(dayDoneCount(k)>0){streak++;d.setDate(d.getDate()-1);}
+    else break;
+  }
+  $('#s1').textContent=streak;
+  var total=0,days=0;
+  for(var i=0;i<7;i++){
+    var dd=new Date();dd.setDate(dd.getDate()-i);
+    var kk=dayKey(dd);
+    total+=dayDoneCount(kk)/EX.length;days++;
+  }
+  $('#s3').textContent=Math.round(total/days*100)+'%';
+  $('#streak').textContent='连续 '+streak+' 天';
+}
+var WD=['日','一','二','三','四','五','六'];
+function renderHistory(){
+  var box=$('#history');
+  var h=box.querySelector('h2');
+  box.innerHTML='';
+  box.appendChild(h);
+  var keys=Object.keys(log).filter(function(k){return dayDoneCount(k)>0||(log[k].note||'').trim()}).sort().reverse().slice(0,30);
+  if(!keys.length){
+    var p=document.createElement('p');p.className='dim';p.textContent='还没有记录，练完今天的动作勾一下就行。';
+    box.appendChild(p);return;
+  }
+  keys.forEach(function(k){
+    var e=log[k];
+    var parts=k.split('-');
+    var dt=new Date(+parts[0],+parts[1]-1,+parts[2]);
+    var row=document.createElement('div');row.className='hist';
+    var hh=document.createElement('div');hh.className='histh';
+    var b=document.createElement('b');b.textContent=parts[1]+'-'+parts[2]+' 周'+WD[dt.getDay()];
+    var sp=document.createElement('span');sp.className='dim';sp.textContent=e.done.length+' / '+EX.length;
+    hh.appendChild(b);hh.appendChild(sp);row.appendChild(hh);
+    if(e.note&&e.note.trim()){
+      var pn=document.createElement('div');pn.className='histnote';pn.textContent=e.note;
+      row.appendChild(pn);
+    }
+    box.appendChild(row);
+  });
+}
+
+$('#note').addEventListener('input',function(){
+  entry(today()).note=this.value;
+  saveLog();
+});
+
+var tRemain=30,tInt=null;
+function renderTimer(){
+  var m=Math.floor(tRemain/60),s=tRemain%60;
+  $('#tval').textContent=pad(m)+':'+pad(s);
+}
+function stopTimer(){if(tInt){clearInterval(tInt);tInt=null}}
+function tick(){
+  tRemain--;
+  if(tRemain<=0){tRemain=0;renderTimer();stopTimer();beep();return;}
+  renderTimer();
+}
+function beep(){
+  try{
+    var C=window.AudioContext||window.webkitAudioContext;
+    if(!C) return;
+    var c=new C();
+    var o=c.createOscillator(),g=c.createGain();
+    o.connect(g);g.connect(c.destination);
+    o.type='sine';o.frequency.value=880;
+    g.gain.setValueAtTime(0.15,c.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+0.5);
+    o.start();o.stop(c.currentTime+0.5);
+    setTimeout(function(){try{c.close()}catch(e){}},800);
+  }catch(e){}
+}
+$$('.tbtn[data-sec]').forEach(function(b){
+  b.addEventListener('click',function(){
+    stopTimer();
+    tRemain=parseInt(b.getAttribute('data-sec'),10);
+    renderTimer();
+    tInt=setInterval(tick,1000);
+  });
+});
+$('#tstop').addEventListener('click',stopTimer);
+
+$$('nav button').forEach(function(b){
+  b.addEventListener('click',function(){
+    $$('nav button').forEach(function(x){x.classList.remove('on')});
+    b.classList.add('on');
+    $$('section').forEach(function(s){s.classList.remove('on')});
+    var sec=document.getElementById(b.getAttribute('data-t'));
+    if(sec) sec.classList.add('on');
+    if(b.getAttribute('data-t')==='hist'){update();}
+    window.scrollTo(0,0);
+  });
+});
+
+renderTimer();
+update();
+})();
+</script>
+</body>
+</html>
